@@ -91,7 +91,7 @@ class Component(KBCEnvHandler):
                 l['row_number'] = index
                 writer.writerow(l)
 
-        self.configuration.write_table_manifest(filename=RESULT_FILE_PATH, primary_key=['row_number'], incremental=True)
+        self.configuration.write_table_manifest(file_name=RESULT_FILE_PATH, primary_key=['row_number'], incremental=True)
 
         now_str = str(datetime.now().date())
         self.write_state_file({"last_update": now_str})
