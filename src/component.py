@@ -57,13 +57,42 @@ class Component(KBCEnvHandler):
         '''
         Main execution code
         '''
-        params = self.cfg_params  # noqa
 
-        # ####### EXAMPLE TO REMOVE
-        if params.get(KEY_PRINT_HELLO):
-            logging.info("Hello World")
+        # ####### ADDED CODE
+        last_state = self.get_state_file()
+        print(last_state.get("last_update", ''))
 
-        # ####### EXAMPLE TO REMOVE END
+        DATA_FOLDER = Path('/data')
+
+        in_table_defs = self.get_input_tables_definitions()
+        first_table_def = in_table_defs[0]
+        SOURCE_FILE_PATH = first_table_def.full_path
+        RESULT_FILE_PATH = os.path.join(self.tables_out_path, 'output.csv')
+
+        config = self.cfg_params  # noqa
+        PARAM_PRINT_LINES = config['print_rows']
+
+        print('Running...')
+        with open(SOURCE_FILE_PATH, 'r') as input, open(RESULT_FILE_PATH, 'w+', newline='') as out:
+            reader = csv.DictReader(input)
+            new_columns = reader.fieldnames
+            # append row number col
+            new_columns.append('row_number')
+            writer = csv.DictWriter(out, fieldnames=new_columns, lineterminator='\n', delimiter=',')
+            writer.writeheader()
+            for index, l in enumerate(reader):
+                # print line
+                if PARAM_PRINT_LINES:
+                    print(f'Printing line {index}: {l}')
+                # add row number
+                l['row_number'] = index
+                writer.writerow(l)
+
+        self.configuration.write_table_manifest(filename=RESULT_FILE_PATH, primary_key=['row_number'], incremental=True)
+
+        now_str = str(datetime.now().date())
+        self.write_state_file({"last_update": now_str})
+        # ####### ADDED CODE END
 
 
 """
